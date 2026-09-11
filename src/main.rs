@@ -46,4 +46,13 @@ mod tests {
         let packet = Packet::tcp("10.0.0.1", "10.0.0.2", 443);
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
+
+    #[test]
+    fn matching_rule_action_is_applied() {
+        let rule = Rule::new().src("10.0.0.1").action(Action::Allow);
+        let engine = RuleEngine::new(vec![]);
+        let packet = Packet::tcp("10.0.0.1", "10.0.0.2", 443);
+
+        assert_eq!(engine.decide(&packet), Action::Allow);
+    }
 }
