@@ -1,4 +1,10 @@
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Protocol {
+    Tcp,
+    Udp,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Action {
     Allow,
     Deny,
