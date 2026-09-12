@@ -69,6 +69,13 @@ impl RuleEngine {
     }
 
     pub fn decide(&self, packet: &Packet) -> Action {
+        for rule in &self.rules {
+            if rule.src.as_deref().is_none_or(|src| src == packet.src)
+            && rule.protocol.is_none_or(|protocol| protocol == packet.protocol) {
+                return rule.action.unwrap_or(Action::Deny);
+            }
+        }
+        
         Action::Deny
     }
 }
