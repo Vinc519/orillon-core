@@ -11,7 +11,10 @@ pub enum Action {
 }
 
 pub struct Packet {
-
+    protocol: Protocol,
+    src: String,
+    dst: String,
+    port: u16,
 }
 
 impl Packet {
