@@ -29,7 +29,34 @@ impl Packet {
 }
 
 pub struct Rule {
+    protocol: Option<Protocol>,
+    src: Option<String>,
+    action: Option<Action>,
+}
 
+impl Rule {
+    pub fn new() -> Self {
+        Self {
+            src: None,
+            protocol: None,
+            action: None,
+        }
+    }
+
+    pub fn src(mut self, src: &str) -> Self {
+        self.src = Some(src.to_string());
+        self
+    }
+
+    pub fn protocol(mut self, protocol: Protocol) -> Self {
+        self.protocol = Some(protocol);
+        self
+    }
+
+    pub fn action(mut self, action: Action) -> Self {
+        self.action = Some(action);
+        self
+    }
 }
 
 pub struct RuleEngine {
