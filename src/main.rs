@@ -19,7 +19,12 @@ pub struct Packet {
 
 impl Packet {
     pub fn tcp(src: &str, dst: &str, port: u16) -> Self {
-        Self {}
+        Self {
+            protocol: Protocol::Tcp,
+            src: src.to_string(),
+            dst: dst.to_string(),
+            port,
+        }
     }
 }
 
