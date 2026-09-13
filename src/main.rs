@@ -144,87 +144,99 @@ fn main() {
 mod tests {
     use super::*;
 
+    ///---- Rules Tests ---///
+    #[test]
+    fn rule_matches_on_protocol() {
+        let rule = Rule::new().protocol(Protocol::Udp);
+        let packet = Packet::builder().protocol(Protocol::Udp).build();
+
+        assert_eq!(rule.matches(&packet), true);
+    }
+
+    #[test]
+    fn rule_does_not_match_when_protocol_differs() {
+        let rule = Rule::new().protocol(Protocol::Tcp);
+        let packet = Packet::builder().protocol(Protocol::Udp).build();
+
+        assert_eq!(rule.matches(&packet), false);
+    }
+
+    #[test]
+    fn rule_matches_on_src() {
+        let rule = Rule::new().src("10.0.0.1");
+        let packet = Packet::builder().src("10.0.0.1").build();
+
+        assert_eq!(rule.matches(&packet), true);
+    }
+
+    #[test]
+    fn rule_does_not_match_when_src_differs() {
+        let rule = Rule::new().src("10.0.0.1");
+        let packet = Packet::builder().src("10.0.0.3").build();
+
+        assert_eq!(rule.matches(&packet), false);
+    }
+
+    #[test]
+    fn rule_matches_on_dst() {
+        let rule = Rule::new().dst("10.0.0.4");
+        let packet = Packet::builder().dst("10.0.0.4").build();
+
+        assert_eq!(rule.matches(&packet), true);
+    }
+
+    #[test]
+    fn rule_does_not_match_when_dst_differs() {
+        let rule = Rule::new().dst("10.0.0.4");
+        let packet = Packet::builder().dst("10.0.0.1").build();
+
+        assert_eq!(rule.matches(&packet), false);
+    }
+
+    #[test]
+    fn rule_matches_on_sport() {
+        let rule = Rule::new().sport(22);
+        let packet = Packet::builder().sport(22).build();
+
+        assert_eq!(rule.matches(&packet), true);
+    }
+
+    #[test]
+    fn rule_does_not_match_when_sport_differs() {
+        let rule = Rule::new().sport(143);
+        let packet = Packet::builder().sport(103).build();
+
+        assert_eq!(rule.matches(&packet), false);
+    }
+
+    #[test]
+    fn rule_matches_on_dport() {
+        let rule = Rule::new().dport(22);
+        let packet = Packet::builder().dport(22).build();
+
+        assert_eq!(rule.matches(&packet), true);
+    }
+
+    #[test]
+    fn rule_does_not_match_when_dport_differs() {
+        let rule = Rule::new().dport(143);
+        let packet = Packet::builder().dport(103).build();
+        
+        assert_eq!(rule.matches(&packet), false);
+    }
+
+
+    ///---- Rule Engine Tests ---///
     #[test]
     fn no_rules_means_packet_is_denied_by_default() {
         let engine = RuleEngine::new(vec![]);
         let packet = Packet::builder().build();
-        assert_eq!(engine.decide(&packet), Action::Deny);
-    }
-
-    #[test]
-    fn matching_rule_action_is_applied() {
-        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").action(Action::Allow);
-        let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::builder().src("10.0.0.1").build();
-
-        assert_eq!(engine.decide(&packet), Action::Allow);
-    }
-
-    #[test]
-    fn non_matching_rule_falls_back_to_default() {
-        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").action(Action::Allow);
-        let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::builder().src("10.0.0.3").build();
 
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
-
+    
     #[test]
-    fn destination_matching() {
-        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.0.0.4").action(Action::Allow);
-        let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::builder().src("10.0.0.1").dst("10.0.0.4").build();
-
-        assert_eq!(engine.decide(&packet), Action::Allow);
-    }
-
-    #[test]
-    fn destination_non_matching() {
-        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.0.0.4").action(Action::Allow);
-        let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::builder().src("10.0.0.4").dst("10.0.0.1").build();
-
-        assert_eq!(engine.decide(&packet), Action::Deny);
-    }
-
-    #[test]
-    fn sport_matching() {
-        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.15").dst("10.0.0.26").sport(22).action(Action::Allow);
-        let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::builder().src("10.0.0.15").dst("10.0.0.26").sport(22).build();
-
-        assert_eq!(engine.decide(&packet), Action::Allow);
-    }
-
-    #[test]
-    fn sport_non_matching() {
-        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.55").dst("10.0.0.43").sport(143).action(Action::Allow);
-        let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::builder().src("10.0.0.55").dst("10.0.0.43").sport(103).build();
-
-        assert_eq!(engine.decide(&packet), Action::Deny);
-    }
-
-    #[test]
-    fn dport_matching() {
-        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.15").dst("10.0.0.26").dport(22).action(Action::Allow);
-        let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::builder().src("10.0.0.15").dst("10.0.0.26").dport(22).build();
-
-        assert_eq!(engine.decide(&packet), Action::Allow);
-    }
-
-    #[test]
-    fn dport_non_matching() {
-        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.55").dst("10.0.0.43").dport(143).action(Action::Allow);
-        let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::builder().src("10.0.0.55").dst("10.0.0.43").dport(103).build();
-        
-        assert_eq!(engine.decide(&packet), Action::Deny);
-    }
-
-    #[test]
-    fn without_ip_matches_any_source_and_destination() {
+    fn rule_without_ip_matches_any_source_and_destination() {
         let rule = Rule::new().protocol(Protocol::Tcp).dport(22).action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
 
@@ -233,14 +245,5 @@ mod tests {
 
         assert_eq!(engine.decide(&packet1), Action::Allow);
         assert_eq!(engine.decide(&packet2), Action::Allow);
-    }
-
-    #[test]
-    fn without_ip_non_matching_on_port() {
-        let rule = Rule::new().protocol(Protocol::Tcp).dport(22).action(Action::Allow);
-        let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::builder().src("10.0.0.159").dst("10.0.0.76").dport(103).build();
-        
-        assert_eq!(engine.decide(&packet), Action::Deny);
     }
 }
