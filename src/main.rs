@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn matching_rule_action_is_applied() {
-        let rule = Rule::new().src("10.0.0.1").protocol(Protocol::Tcp).action(Action::Allow);
+        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
         let packet = Packet::tcp("10.0.0.1", "10.0.0.2", 443);
 
@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn non_matching_rule_falls_back_to_default() {
-        let rule = Rule::new().src("10.0.0.1").protocol(Protocol::Tcp).action(Action::Allow);
+        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
         let packet = Packet::tcp("10.0.0.3", "10.0.0.2", 443);
 
