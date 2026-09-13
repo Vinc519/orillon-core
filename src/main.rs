@@ -15,15 +15,17 @@ pub struct Packet {
     src: String,
     dst: String,
     sport: u16,
+    dport: u16,
 }
 
 impl Packet {
-    pub fn tcp(src: &str, dst: &str, sport: u16) -> Self {
+    pub fn tcp(src: &str, dst: &str, sport: u16, dport: u16) -> Self {
         Self {
             protocol: Protocol::Tcp,
             src: src.to_string(),
             dst: dst.to_string(),
             sport: sport,
+            dport: dport,
         }
     }
 }
@@ -33,6 +35,7 @@ pub struct Rule {
     src: Option<String>,
     dst: Option<String>,
     sport: Option<u16>,
+    dport: Option<u16>,
     action: Option<Action>,
 }
 
@@ -43,6 +46,7 @@ impl Rule {
             src: None,
             dst: None,
             sport: None,
+            dport: None,
             action: None,
         }
     }
@@ -67,6 +71,11 @@ impl Rule {
         self
     }
 
+    pub fn dport(mut self, dport: u16) -> Self {
+        self.dport = Some(dport);
+        self
+    }
+
     pub fn action(mut self, action: Action) -> Self {
         self.action = Some(action);
         self
@@ -87,7 +96,8 @@ impl RuleEngine {
             if rule.protocol.is_none_or(|protocol| protocol == packet.protocol)
             && rule.src.as_deref().is_none_or(|src| src == packet.src)
             && rule.dst.as_deref().is_none_or(|dst| dst == packet.dst)
-            && rule.sport.is_none_or(|sport| sport == packet.sport) {
+            && rule.sport.is_none_or(|sport| sport == packet.sport)
+            && rule.dport.is_none_or(|dport| dport == packet.dport) {
                 return rule.action.unwrap_or(Action::Deny);
             }
         }
