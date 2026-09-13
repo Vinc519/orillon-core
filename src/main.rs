@@ -200,4 +200,22 @@ mod tests {
 
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
+
+    #[test]
+    fn dport_matching() {
+        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.15").dst("10.0.0.26").dport(22).action(Action::Allow);
+        let engine = RuleEngine::new(vec![rule]);
+        let packet = Packet::builder().src("10.0.0.15").dst("10.0.0.26").dport(22).build();
+
+        assert_eq!(engine.decide(&packet), Action::Allow);
+    }
+
+    #[test]
+    fn dport_non_matching() {
+        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.55").dst("10.0.0.43").dport(143).action(Action::Allow);
+        let engine = RuleEngine::new(vec![rule]);
+        let packet = Packet::builder().src("10.0.0.55").dst("10.0.0.43").dport(103).build();
+        
+        assert_eq!(engine.decide(&packet), Action::Deny);
+    }
 }
