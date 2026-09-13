@@ -220,4 +220,25 @@ mod tests {
         
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
+
+    #[test]
+    fn without_ip_matches_any_source_and_destination() {
+        let rule = Rule::new().protocol(Protocol::Tcp).dport(22).action(Action::Allow);
+        let engine = RuleEngine::new(vec![rule]);
+
+        let packet1 = Packet::builder().src("10.0.0.15").dst("10.0.0.26").dport(22).build();
+        let packet2 = Packet::builder().src("192.168.1.1").dst("8.8.8.8").dport(22).build();
+
+        assert_eq!(engine.decide(&packet1), Action::Allow);
+        assert_eq!(engine.decide(&packet2), Action::Allow);
+    }
+
+    #[test]
+    fn without_ip_non_matching_on_port() {
+        let rule = Rule::new().protocol(Protocol::Tcp).dport(22).action(Action::Allow);
+        let engine = RuleEngine::new(vec![rule]);
+        let packet = Packet::builder().src("10.0.0.159").dst("10.0.0.76").dport(103).build();
+        
+        assert_eq!(engine.decide(&packet), Action::Deny);
+    }
 }
