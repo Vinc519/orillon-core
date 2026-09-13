@@ -1,5 +1,13 @@
 use std::net::IpAddr;
 
+#[derive(Debug, PartialEq)]
+pub enum RuleError {
+    InvalidSourceIp(String),
+    InvalidDestinationIp(String),
+    InvalidSourcePort(String),
+    InvalidDestinationPort(String),
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Protocol {
     Tcp,
