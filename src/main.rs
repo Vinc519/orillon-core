@@ -31,6 +31,7 @@ impl Packet {
 pub struct Rule {
     protocol: Option<Protocol>,
     src: Option<String>,
+    dst: Option<String>,
     action: Option<Action>,
 }
 
@@ -39,6 +40,7 @@ impl Rule {
         Self {
             protocol: None,
             src: None,
+            dst: None,
             action: None,
         }
     }
@@ -50,6 +52,11 @@ impl Rule {
 
     pub fn src(mut self, src: &str) -> Self {
         self.src = Some(src.to_string());
+        self
+    }
+
+    pub fn dst(mut self, dst: &str) -> Self {
+        self.dst = Some(dst.to_string());
         self
     }
 
@@ -71,7 +78,8 @@ impl RuleEngine {
     pub fn decide(&self, packet: &Packet) -> Action {
         for rule in &self.rules {
             if rule.src.as_deref().is_none_or(|src| src == packet.src)
-            && rule.protocol.is_none_or(|protocol| protocol == packet.protocol) {
+            && rule.protocol.is_none_or(|protocol| protocol == packet.protocol)
+            && rule.dst.as_deref().is_none_or(|dst| dst == packet.dst) {
                 return rule.action.unwrap_or(Action::Deny);
             }
         }
@@ -122,6 +130,7 @@ mod tests {
         assert_eq!(engine.decide(&packet), Action::Allow);
     }
 
+    #[test]
     fn destination_non_matching() {
         let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.0.0.4").action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
