@@ -1,3 +1,5 @@
+use std::net::IpAddr;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Protocol {
     Tcp,
@@ -12,16 +14,16 @@ pub enum Action {
 
 pub struct Packet {
     protocol: Protocol,
-    src: String,
-    dst: String,
+    src: IpAddr,
+    dst: IpAddr,
     sport: u16,
     dport: u16,
 }
 
 pub struct PacketBuilder {
     protocol: Protocol,
-    src: String,
-    dst: String,
+    src: IpAddr,
+    dst: IpAddr,
     sport: u16,
     dport: u16,
 }
@@ -58,8 +60,8 @@ impl PacketBuilder {
 
 pub struct Rule {
     protocol: Option<Protocol>,
-    src: Option<String>,
-    dst: Option<String>,
+    src: Option<IpAddr>,
+    dst: Option<IpAddr>,
     sport: Option<u16>,
     dport: Option<u16>,
     action: Option<Action>,
@@ -82,13 +84,13 @@ impl Rule {
         self
     }
 
-    pub fn src(mut self, src: &str) -> Self {
-        self.src = Some(src.to_string());
+    pub fn src(mut self, ip: &str) -> Self {
+        self.src = Some(ip.parse().unwrap());
         self
     }
 
-    pub fn dst(mut self, dst: &str) -> Self {
-        self.dst = Some(dst.to_string());
+    pub fn dst(mut self, ip: &str) -> Self {
+        self.dst = Some(ip.parse().unwrap());
         self
     }
 
@@ -120,8 +122,8 @@ impl RuleEngine {
     pub fn decide(&self, packet: &Packet) -> Action {
         for rule in &self.rules {
             if rule.protocol.is_none_or(|protocol| protocol == packet.protocol)
-            && rule.src.as_deref().is_none_or(|src| src == packet.src)
-            && rule.dst.as_deref().is_none_or(|dst| dst == packet.dst)
+            && rule.src.is_none_or(|src| src == packet.src)
+            && rule.dst.is_none_or(|dst| dst == packet.dst)
             && rule.sport.is_none_or(|sport| sport == packet.sport)
             && rule.dport.is_none_or(|dport| dport == packet.dport) {
                 return rule.action.unwrap_or(Action::Deny);
