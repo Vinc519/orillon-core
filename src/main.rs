@@ -18,14 +18,40 @@ pub struct Packet {
     dport: u16,
 }
 
+pub struct PacketBuilder {
+    protocol: Protocol,
+    src: String,
+    dst: String,
+    sport: u16,
+    dport: u16,
+}
+
 impl Packet {
-    pub fn tcp(src: &str, dst: &str, sport: u16, dport: u16) -> Self {
-        Self {
+    pub fn builder() -> PacketBuilder {
+        PacketBuilder {
             protocol: Protocol::Tcp,
-            src: src.to_string(),
-            dst: dst.to_string(),
-            sport: sport,
-            dport: dport,
+            src: "0.0.0.0".parse().unwrap(),
+            dst: "0.0.0.0".parse().unwrap(),
+            sport: 0,
+            dport: 0,
+        }
+    }
+}
+
+impl PacketBuilder {
+    pub fn protocol(mut self, p: Protocol) -> Self { self.protocol = p; self }
+    pub fn src(mut self, ip: &str) -> Self { self.src = ip.parse().unwrap(); self }
+    pub fn dst(mut self, ip: &str) -> Self { self.dst = ip.parse().unwrap(); self }
+    pub fn sport(mut self, port: u16) -> Self { self.sport = port; self }
+    pub fn dport(mut self, port: u16) -> Self { self.dport = port; self }
+
+    pub fn build(self) -> Packet {
+        Packet {
+            protocol: self.protocol, 
+            src: self.src,
+            dst: self.dst,
+            sport: self.sport,
+            dport: self.dport,
         }
     }
 }
