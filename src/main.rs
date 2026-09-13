@@ -280,4 +280,13 @@ mod tests {
 
         assert_eq!(engine.decide(&packet), Action::Allow);
     }
+
+
+    ///---- Rule Error Tests ---///
+    #[test]
+    fn invalid_src_ip_produces_error() {
+        let result = Rule::new().src("57441545.5475445.not an ip").action(Action::Allow).build();
+
+        assert_eq!(result, Err(vec![RuleError::InvalidSourceIp("57441545.5475445.not an ip".to_string())]));
+    }
 }
