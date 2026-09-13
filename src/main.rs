@@ -107,7 +107,7 @@ mod tests {
     fn matching_rule_action_is_applied() {
         let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::tcp("10.0.0.1", "10.0.0.2", 443);
+        let packet = Packet::tcp("10.0.0.1", "10.0.0.2", 1028);
 
         assert_eq!(engine.decide(&packet), Action::Allow);
     }
@@ -116,7 +116,7 @@ mod tests {
     fn non_matching_rule_falls_back_to_default() {
         let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::tcp("10.0.0.3", "10.0.0.2", 443);
+        let packet = Packet::tcp("10.0.0.3", "10.0.0.2", 22);
 
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
@@ -125,7 +125,7 @@ mod tests {
     fn destination_matching() {
         let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.0.0.4").action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::tcp("10.0.0.1", "10.0.0.4", 443);
+        let packet = Packet::tcp("10.0.0.1", "10.0.0.4", 25);
 
         assert_eq!(engine.decide(&packet), Action::Allow);
     }
