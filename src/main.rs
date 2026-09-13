@@ -143,7 +143,7 @@ mod tests {
     #[test]
     fn no_rules_means_packet_is_denied_by_default() {
         let engine = RuleEngine::new(vec![]);
-        let packet = Packet::tcp("10.0.0.1", "10.0.0.2", 443);
+        let packet = Packet::builder().build();
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
 
@@ -151,7 +151,7 @@ mod tests {
     fn matching_rule_action_is_applied() {
         let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::tcp("10.0.0.1", "10.0.0.2", 1028);
+        let packet = Packet::builder().src("10.0.0.1").build();
 
         assert_eq!(engine.decide(&packet), Action::Allow);
     }
@@ -160,7 +160,7 @@ mod tests {
     fn non_matching_rule_falls_back_to_default() {
         let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::tcp("10.0.0.3", "10.0.0.2", 22);
+        let packet = Packet::builder().src("10.0.0.3").build();
 
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
@@ -169,7 +169,7 @@ mod tests {
     fn destination_matching() {
         let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.0.0.4").action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::tcp("10.0.0.1", "10.0.0.4", 25);
+        let packet = Packet::builder().src("10.0.0.1").dst("10.0.0.4").build();
 
         assert_eq!(engine.decide(&packet), Action::Allow);
     }
@@ -178,7 +178,7 @@ mod tests {
     fn destination_non_matching() {
         let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.0.0.4").action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::tcp("10.0.0.4", "10.0.0.1", 53);
+        let packet = Packet::builder().src("10.0.0.4").dst("10.0.0.1").build();
 
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
@@ -187,7 +187,7 @@ mod tests {
     fn sport_matching() {
         let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.15").dst("10.0.0.26").sport(22).action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::tcp("10.0.0.15", "10.0.0.26", 22);
+        let packet = Packet::builder().src("10.0.0.15").dst("10.0.0.26").sport(22).build();
 
         assert_eq!(engine.decide(&packet), Action::Allow);
     }
@@ -196,7 +196,7 @@ mod tests {
     fn sport_non_matching() {
         let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.55").dst("10.0.0.43").sport(143).action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
-        let packet = Packet::tcp("10.0.0.55", "10.0.0.43", 443);
+        let packet = Packet::builder().src("10.0.0.55").dst("10.0.0.43").sport(103).build();
 
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
