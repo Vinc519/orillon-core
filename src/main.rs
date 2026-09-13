@@ -42,8 +42,8 @@ impl Packet {
 
 impl PacketBuilder {
     pub fn protocol(mut self, p: Protocol) -> Self { self.protocol = p; self }
-    pub fn src(mut self, ip: &str) -> Self { self.src = ip.parse().unwrap(); self }
-    pub fn dst(mut self, ip: &str) -> Self { self.dst = ip.parse().unwrap(); self }
+    pub fn src(mut self, ip: IpAddr) -> Self { self.src = ip; self }
+    pub fn dst(mut self, ip: IpAddr) -> Self { self.dst = ip; self }
     pub fn sport(mut self, port: u16) -> Self { self.sport = port; self }
     pub fn dport(mut self, port: u16) -> Self { self.dport = port; self }
 
@@ -84,13 +84,13 @@ impl Rule {
         self
     }
 
-    pub fn src(mut self, ip: &str) -> Self {
-        self.src = Some(ip.parse().unwrap());
+    pub fn src(mut self, ip: IpAddr) -> Self {
+        self.src = Some(ip);
         self
     }
 
-    pub fn dst(mut self, ip: &str) -> Self {
-        self.dst = Some(ip.parse().unwrap());
+    pub fn dst(mut self, ip: IpAddr) -> Self {
+        self.dst = Some(ip);
         self
     }
 
@@ -163,32 +163,32 @@ mod tests {
 
     #[test]
     fn rule_matches_on_src() {
-        let rule = Rule::new().src("10.0.0.1");
-        let packet = Packet::builder().src("10.0.0.1").build();
+        let rule = Rule::new().src("10.0.0.1".parse().unwrap());
+        let packet = Packet::builder().src("10.0.0.1".parse().unwrap()).build();
 
         assert_eq!(rule.matches(&packet), true);
     }
 
     #[test]
     fn rule_does_not_match_when_src_differs() {
-        let rule = Rule::new().src("10.0.0.1");
-        let packet = Packet::builder().src("10.0.0.3").build();
+        let rule = Rule::new().src("10.0.0.1".parse().unwrap());
+        let packet = Packet::builder().src("10.0.0.3".parse().unwrap()).build();
 
         assert_eq!(rule.matches(&packet), false);
     }
 
     #[test]
     fn rule_matches_on_dst() {
-        let rule = Rule::new().dst("10.0.0.4");
-        let packet = Packet::builder().dst("10.0.0.4").build();
+        let rule = Rule::new().dst("10.0.0.4".parse().unwrap());
+        let packet = Packet::builder().dst("10.0.0.4".parse().unwrap()).build();
 
         assert_eq!(rule.matches(&packet), true);
     }
 
     #[test]
     fn rule_does_not_match_when_dst_differs() {
-        let rule = Rule::new().dst("10.0.0.4");
-        let packet = Packet::builder().dst("10.0.0.1").build();
+        let rule = Rule::new().dst("10.0.0.4".parse().unwrap());
+        let packet = Packet::builder().dst("10.0.0.1".parse().unwrap()).build();
 
         assert_eq!(rule.matches(&packet), false);
     }
@@ -227,16 +227,16 @@ mod tests {
 
     #[test]
     fn rule_matches_when_all_criteria_match_together() {
-        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.2.5.4").dport(22);
-        let packet = Packet::builder().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.2.5.4").dport(22).build();
+        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1".parse().unwrap()).dst("10.2.5.4".parse().unwrap()).dport(22);
+        let packet = Packet::builder().protocol(Protocol::Tcp).src("10.0.0.1".parse().unwrap()).dst("10.2.5.4".parse().unwrap()).dport(22).build();
 
         assert_eq!(rule.matches(&packet), true);
     }
 
     #[test]
     fn rule_does_not_match_when_one_criterion_among_several_differs() {
-        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.2.5.4").dport(80);
-        let packet = Packet::builder().protocol(Protocol::Udp).src("10.0.0.1").dst("10.2.6.4").dport(2222).build();
+        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1".parse().unwrap()).dst("10.2.5.4".parse().unwrap()).dport(80);
+        let packet = Packet::builder().protocol(Protocol::Udp).src("10.0.0.1".parse().unwrap()).dst("10.2.6.4".parse().unwrap()).dport(2222).build();
 
         assert_eq!(rule.matches(&packet), false);
     }
@@ -256,8 +256,8 @@ mod tests {
         let rule = Rule::new().protocol(Protocol::Tcp).dport(22).action(Action::Allow);
         let engine = RuleEngine::new(vec![rule]);
 
-        let packet1 = Packet::builder().src("10.0.0.15").dst("10.0.0.26").dport(22).build();
-        let packet2 = Packet::builder().src("192.168.1.1").dst("8.8.8.8").dport(22).build();
+        let packet1 = Packet::builder().src("10.0.0.15".parse().unwrap()).dst("10.0.0.26".parse().unwrap()).dport(22).build();
+        let packet2 = Packet::builder().src("192.168.1.1".parse().unwrap()).dst("8.8.8.8".parse().unwrap()).dport(22).build();
 
         assert_eq!(engine.decide(&packet1), Action::Allow);
         assert_eq!(engine.decide(&packet2), Action::Allow);
