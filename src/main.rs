@@ -234,7 +234,7 @@ mod tests {
 
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
-    
+
     #[test]
     fn rule_without_ip_matches_any_source_and_destination() {
         let rule = Rule::new().protocol(Protocol::Tcp).dport(22).action(Action::Allow);
@@ -245,5 +245,15 @@ mod tests {
 
         assert_eq!(engine.decide(&packet1), Action::Allow);
         assert_eq!(engine.decide(&packet2), Action::Allow);
+    }
+
+    #[test]
+    fn first_matching_rule_wins() {
+        let rule1 = Rule::new().dport(22).action(Action::Allow);
+        let rule2 = Rule::new().dport(22).action(Action::Deny);
+        let engine = RuleEngine::new(vec![rule1, rule2]);
+        let packet = Packet::builder().dport(22).build();
+
+        assert_eq!(engine.decide(&packet), Action::Allow);
     }
 }
