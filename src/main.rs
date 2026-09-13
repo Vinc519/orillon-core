@@ -64,7 +64,7 @@ pub struct Rule {
     dst: Option<IpAddr>,
     sport: Option<u16>,
     dport: Option<u16>,
-    action: Option<Action>,
+    action: Action,
 }
 
 impl Rule {
@@ -75,7 +75,7 @@ impl Rule {
             dst: None,
             sport: None,
             dport: None,
-            action: None,
+            action: Action::Deny,
         }
     }
 
@@ -105,8 +105,16 @@ impl Rule {
     }
 
     pub fn action(mut self, action: Action) -> Self {
-        self.action = Some(action);
+        self.action = action;
         self
+    }
+
+    pub fn matches(&self, packet: &Packet) -> bool {
+        self.protocol.is_none_or(|p| p == packet.protocol)
+            && self.src.is_none_or(|src| src == packet.src)
+            && self.dst.is_none_or(|dst| dst == packet.dst)
+            && self.sport.is_none_or(|sport| sport == packet.sport)
+            && self.dport.is_none_or(|dport| dport == packet.dport)
     }
 }
 
@@ -120,17 +128,11 @@ impl RuleEngine {
     }
 
     pub fn decide(&self, packet: &Packet) -> Action {
-        for rule in &self.rules {
-            if rule.protocol.is_none_or(|protocol| protocol == packet.protocol)
-            && rule.src.is_none_or(|src| src == packet.src)
-            && rule.dst.is_none_or(|dst| dst == packet.dst)
-            && rule.sport.is_none_or(|sport| sport == packet.sport)
-            && rule.dport.is_none_or(|dport| dport == packet.dport) {
-                return rule.action.unwrap_or(Action::Deny);
-            }
-        }
-        
-        Action::Deny
+        self.rules
+            .iter()
+            .find(|rule| rule.matches(packet))
+            .map(|rule| rule.action)
+            .unwrap_or(Action::Deny)
     }
 }
 
