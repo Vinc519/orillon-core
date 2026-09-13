@@ -112,4 +112,21 @@ mod tests {
 
         assert_eq!(engine.decide(&packet), Action::Deny);
     }
+
+    #[test]
+    fn destination_matching() {
+        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.0.0.4").action(Action::Allow);
+        let engine = RuleEngine::new(vec![rule]);
+        let packet = Packet::tcp("10.0.0.1", "10.0.0.4", 443);
+
+        assert_eq!(engine.decide(&packet), Action::Allow);
+    }
+
+    fn destination_non_matching() {
+        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.0.0.4").action(Action::Allow);
+        let engine = RuleEngine::new(vec![rule]);
+        let packet = Packet::tcp("10.0.0.4", "10.0.0.1", 443);
+
+        assert_eq!(engine.decide(&packet), Action::Deny);
+    }
 }
