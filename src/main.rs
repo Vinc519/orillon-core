@@ -225,6 +225,22 @@ mod tests {
         assert_eq!(rule.matches(&packet), false);
     }
 
+    #[test]
+    fn rule_matches_when_all_criteria_match_together() {
+        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.2.5.4").dport(22);
+        let packet = Packet::builder().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.2.5.4").dport(22).build();
+
+        assert_eq!(rule.matches(&packet), true);
+    }
+
+    #[test]
+    fn rule_does_not_match_when_one_criterion_among_several_differs() {
+        let rule = Rule::new().protocol(Protocol::Tcp).src("10.0.0.1").dst("10.2.5.4").dport(80);
+        let packet = Packet::builder().protocol(Protocol::Udp).src("10.0.0.1").dst("10.2.6.4").dport(2222).build();
+
+        assert_eq!(rule.matches(&packet), false);
+    }
+
 
     ///---- Rule Engine Tests ---///
     #[test]
