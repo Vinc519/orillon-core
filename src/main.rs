@@ -37,19 +37,19 @@ pub struct Rule {
 impl Rule {
     pub fn new() -> Self {
         Self {
-            src: None,
             protocol: None,
+            src: None,
             action: None,
         }
     }
 
-    pub fn src(mut self, src: &str) -> Self {
-        self.src = Some(src.to_string());
+    pub fn protocol(mut self, protocol: Protocol) -> Self {
+        self.protocol = Some(protocol);
         self
     }
 
-    pub fn protocol(mut self, protocol: Protocol) -> Self {
-        self.protocol = Some(protocol);
+    pub fn src(mut self, src: &str) -> Self {
+        self.src = Some(src.to_string());
         self
     }
 
