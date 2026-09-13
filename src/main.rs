@@ -103,4 +103,13 @@ mod tests {
 
         assert_eq!(engine.decide(&packet), Action::Allow);
     }
+
+    #[test]
+    fn non_matching_rule_falls_back_to_default() {
+        let rule = Rule::new().src("10.0.0.1").protocol(Protocol::Tcp).action(Action::Allow);
+        let engine = RuleEngine::new(vec![rule]);
+        let packet = Packet::tcp("10.0.0.3", "10.0.0.2", 443);
+
+        assert_eq!(engine.decide(&packet), Action::Deny);
+    }
 }
